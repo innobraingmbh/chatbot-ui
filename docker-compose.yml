@@ -1,9 +1,18 @@
-version: '3.6'
+version: "3.6"
 
 services:
   chatgpt:
+    env_file:
+      - .env
+    container_name: ${CONTAINER_NAME}
     build: .
-    ports:
-      - 3000:3000
     environment:
-      - 'OPENAI_API_KEY='
+      - "OPENAI_API_KEY"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.${CONTAINER_NAME}.rule=Host(`${HOST_DOMAIN}`)"
+      - "traefik.http.services.${CONTAINER_NAME}.loadbalancer.server.port=3000"
+      - "traefik.http.routers.${CONTAINER_NAME}.entrypoints=websecure"
+      - "traefik.http.routers.${CONTAINER_NAME}.tls.certresolver=myresolver"
+      - "traefik.http.routers.${CONTAINER_NAME}.middlewares=${CONTAINER_NAME}-auth"
+      - "traefik.http.middlewares.${CONTAINER_NAME}-auth.basicauth.usersfile=/etc/traefik/.htpasswd"
